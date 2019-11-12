@@ -19,33 +19,33 @@ namespace Server
         static NetworkStream stream;
         static StreamReader reader;
         static void Main(string[] args)
-        {            
+        {
             try
             {
                 string message;
                 OpenServer();
                 while (true)
-                {                
-                    
-                     message = reader.ReadLine();
-
-                    Console.WriteLine("Получено: " + message);
-
-                    var dataModel = new DataModel();
-                    try
+                {
+                    if (stream.DataAvailable)
                     {
-                        dataModel = JsonSerializer.Deserialize<DataModel>(message);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.Message);
-                    }
+                        message = reader.ReadLine();
 
-                    SendResponse(message);
 
-                    stream.Close();
-                    client.Close();
-                }
+                        Console.WriteLine("Получено: " + message);
+
+                        var dataModel = new DataModel();
+                        try
+                        {
+                            dataModel = JsonSerializer.Deserialize<DataModel>(message);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e.Message);
+                        }
+
+                        SendResponse(message);
+                    }
+                }               
             }
             catch (Exception e)
             {
@@ -53,15 +53,30 @@ namespace Server
             }
             finally
             {
-                CloseServer();
+                try
+                {
+                    if (server != null)
+                        server.Stop();
+                    stream.Close();
+                    client.Close();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }                
             }
         }
 
-        static public bool InitializeComponents()
+        static public bool OpenServer()
         {
+
             try
             {
                 localAddr = IPAddress.Parse("127.0.0.1");
+                server = new TcpListener(localAddr, port);
+
+                server.Start();
+
                 client = server.AcceptTcpClient();
                 stream = client.GetStream();
                 reader = new StreamReader(stream);
@@ -73,56 +88,20 @@ namespace Server
                 Console.WriteLine(e.Message);
 
                 return false;
-            }           
-        }
-
-        static public bool OpenServer()
-        {
-
-            try
-            {
-                InitializeComponents();
-                server = new TcpListener(localAddr, port);
-                server.Start();
-
-                return true;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-
-                return false;
             }
         }
-
-        static public bool CloseServer()        
-        {
-            try
-            {
-                if (server != null)
-                    server.Stop();
-
-                return true;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-
-                return false;
-            }
-        }
-
         static public void SendResponse(string message)
         {
             string response = "Сообщение из " + message.Length.ToString() + " байт получено. спасибо";
             StreamWriter writer = new StreamWriter(stream);
+
             writer.WriteLine(response);
             writer.Flush();
         }
 
     }
 
-   
+
 
 
 
