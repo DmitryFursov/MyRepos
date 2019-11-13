@@ -31,6 +31,8 @@ namespace Client
 
             var connection = new ConnectionHandler();
             connection.SendToServer(dataModel);
+            var handler = new OutputFormHandler();
+            handler.Update();
         }      
     }
 }

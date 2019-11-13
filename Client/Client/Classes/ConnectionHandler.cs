@@ -1,6 +1,7 @@
 ﻿using ClassLibrary;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -88,15 +89,18 @@ namespace Client
                 Console.WriteLine("Exception: {0}", e.Message);
             }           
         }
-        public void DownloadFromServer()
+        public DataTable DownloadFromServer()
         {
             OpenConnection();
 
             StreamReader reader = new StreamReader(stream);
             string response = reader.ReadLine();
-            var json = JsonSerializer.Deserialize<DataModel>(response);
+            var table = JsonSerializer.Deserialize<DataTable>(response);
+
+            
 
             CloseConnection();
+            return table;
         }
     }
 }

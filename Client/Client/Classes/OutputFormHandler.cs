@@ -10,7 +10,10 @@ namespace Client
     {
         public void Update()
         {
-
+            var handler = new ConnectionHandler();
+            var table = handler.DownloadFromServer();
+            //table.DefaultView.RowFilter = filterString();
+            string filter = "";
         }
     }
 }

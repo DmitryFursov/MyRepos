@@ -2,6 +2,7 @@
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Linq;
 using System.Text;
 using System.Windows.Forms;
@@ -10,8 +11,8 @@ namespace Server
 {
     class DbHandler
     {
-        private static MySqlConnection connection;       
-        private static  string connectionString;
+        private static MySqlConnection connection;
+        private static string connectionString;
 
         public DbHandler()
         {
@@ -19,20 +20,20 @@ namespace Server
         }
 
         void InitializeComponents()
-        {                        
-            connectionString = "Program=localhost; Port=3306; Database=mydatabase; Uid=root; Pwd=sql12345678;";
+        {
+            connectionString = "Server=localhost; Port=3306; Database=mydatabase; Uid=root; Pwd=sql12345678;";
             connection = new MySqlConnection(connectionString);
         }
 
         private bool OpenConnection()
         {
             try
-            {                
+            {
                 connection.Open();
                 return true;
             }
             catch (MySqlException ex)
-            {       
+            {
                 switch (ex.Number)
                 {
                     case 0:
@@ -64,7 +65,7 @@ namespace Server
         public void Insert(DataModel dataModel)
         {
             OpenConnection();
-            
+
             var command = new MySqlCommand();
             command.CommandText = "INSERT INTO datamodel VALUES(@id,@secondname, @firstname, @middlename, @sum, @date, @ispaid)";
             command.Parameters.Add("@id", MySqlDbType.Int32).Value = dataModel.Id;
@@ -81,17 +82,24 @@ namespace Server
             CloseConnection();
         }
 
-        public void Select()
+        public DataTable Select()
         {
             OpenConnection();
 
             var command = new MySqlCommand();
             command.CommandText = "SELECT * FROM datamodel";
             command.Connection = connection;
+            var adapter = new MySqlDataAdapter(command.CommandText, connection);
+            var table = new DataTable();
+            adapter.Fill(table);
 
-            var data = command.ExecuteScalar();
+            
+
+            //var data = command.ExecuteScalar();
 
             CloseConnection();
+
+            return table;
         }
 
         public void Delete()

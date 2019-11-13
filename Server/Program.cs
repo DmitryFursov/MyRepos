@@ -1,5 +1,8 @@
 ﻿using ClassLibrary;
+//using Newtonsoft.Json;
+
 using System;
+using System.Data;
 using System.IO;
 using System.Net;
 using System.Net.Security;
@@ -36,14 +39,21 @@ namespace Server
                         var dataModel = new DataModel();
                         try
                         {
+                                                     
                             dataModel = JsonSerializer.Deserialize<DataModel>(message);
+                            var handler = new DbHandler();
+                            handler.Insert(dataModel);
+
+
+                            SendResponse();
+
                         }
                         catch (Exception e)
                         {
                             Console.WriteLine(e.Message);
                         }
 
-                        SendResponse(message);
+                        
                     }
                 }               
             }
@@ -90,13 +100,23 @@ namespace Server
                 return false;
             }
         }
-        static public void SendResponse(string message)
-        {
-            string response = "Сообщение из " + message.Length.ToString() + " байт получено. спасибо";
-            StreamWriter writer = new StreamWriter(stream);
+        static public void SendResponse()
+        { 
+            var handler = new DbHandler();
+            var data = handler.Select();
+            var temp = data.ToString();
+            byte[] bytes = Encoding.ASCII.GetBytes(temp);
+            var json = JsonSerializer.Serialize<DataTable>(bytes);
+            
 
-            writer.WriteLine(response);
-            writer.Flush();
+            var writer = new StreamWriter(stream);
+            writer.Write(json);
+            
+            //StreamWriter writer = new StreamWriter(stream);
+            //var json = JsonSerializer.
+
+            //writer.WriteLine(response);
+            //writer.Flush();
         }
 
     }
